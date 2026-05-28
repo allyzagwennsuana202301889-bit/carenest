@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CareNest — Senior Care Platform</title>
+    <style>
+      :root {
+        --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, sans-serif;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f7f4;
+        --text-primary: #1a1a1a;
+        --text-secondary: #6b6b6b;
+        --text-tertiary: #a0a0a0;
+        --border-secondary: #d4d4d4;
+        --border-tertiary: #eaeaea;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font-sans);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        -webkit-font-smoothing: antialiased;
+        padding: 0 16px;
+      }
+      input {
+        padding: 8px 12px;
+        border: 0.5px solid var(--border-secondary);
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        background: var(--bg-primary);
+        outline: none;
+        width: 100%;
+      }
+      input:focus {
+        border-color: #0f6e56;
+      }
+      input::placeholder {
+        color: var(--text-tertiary);
+      }
+      button {
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <base target="_blank" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="module">
+      import React from 'https://esm.sh/react?dev';
+      import ReactDOM from 'https://esm.sh/react-dom/client?dev';
+      window.__tmp = { React, ReactDOM };
+    </script>
+
+    <script type="text/babel">
+      const { React, ReactDOM } = window.__tmp;
+      delete window.__tmp;
+      const { useState, useEffect, useCallback } = React;
+
+      // ===================== DATA =====================
+      const DB = {
+        patients: [
+          {
+            id: 1,
+            name: 'Lorna Dela Cruz',
+            age: 74,
+            room: 'A-101',
+            condition: 'Post-op Recovery',
+            status: 'stable',
+            nurse: 'Ana Reyes',
+            vitals: { bp: '120/80', hr: 72, temp: 36.8, o2: 98 },
+            lastUpdate: '2 min ago',
+            avatar: 'LD',
+          },
+          {
+            id: 2,
+            name: 'Ramon Santos',
+            age: 81,
+            room: 'B-204',
+            condition: 'Diabetes Mgmt',
+            status: 'alert',
+            nurse: 'Ben Cruz',
+            vitals: { bp: '145/92', hr: 88, temp: 37.2, o2: 95 },
+            lastUpdate: '8 min ago',
+            avatar: 'RS',
+          },
+          {
+            id: 3,
+            name: 'Celia Manalac',
+            age: 68,
+            room: 'C-310',
+            condition: 'Cardiac Monitor',
+            status: 'stable',
+            nurse: 'Ana Reyes',
+            vitals: { bp: '118/76', hr: 65, temp: 36.6, o2: 99 },
+            lastUpdate: '5 min ago',
+            avatar: 'CM',
+          },
+          {
+            id: 4,
+            name: 'Jose Bautista',
+            age: 77,
+            room: 'A-108',
+            condition: 'Stroke Rehab',
+            status: 'critical',
+            nurse: 'Mia Lim',
+            vitals: { bp: '160/100', hr: 95, temp: 37.8, o2: 92 },
+            lastUpdate: '1 min ago',
+            avatar: 'JB',
+          },
+          {
+            id: 5,
+            name: 'Nena Villanueva',
+            age: 83,
+            room: 'D-402',
+            condition: 'Dementia Care',
+            status: 'stable',
+            nurse: 'Ben Cruz',
+            vitals: { bp: '125/82', hr: 70, temp: 36.7, o2: 97 },
+            lastUpdate: '15 min ago',
+            avatar: 'NV',
+          },
+        ],
+        tasks: [
+          {
+            id: 1,
+            patientId: 2,
+            text: 'Check blood sugar levels',
+            due: '10:30 AM',
+            done: false,
+            priority: 'high',
+          },
+          {
+            id: 2,
+            patientId: 4,
+            text: 'Administer prescribed medication',
+            due: '11:00 AM',
+            done: false,
+            priority: 'critical',
+          },
+          {
+            id: 3,
+            patientId: 1,
+            text: 'Post-op wound dressing change',
+            due: '12:00 PM',
+            done: false,
+            priority: 'medium',
+          },
+          {
+            id: 4,
+            patientId: 3,
+            text: 'ECG reading & chart update',
+            due: '1:00 PM',
+            done: true,
+            priority: 'medium',
+          },
+          {
+            id: 5,
+            patientId: 5,
+            text: 'Family call check-in session',
+            due: '2:00 PM',
+            done: false,
+            priority: 'low',
+          },
+        ],
+        staff: [
+          {
+            id: 1,
+            name: 'Ana Reyes',
+            role: 'Head Nurse',
+            shift: 'Day',
+            patients: 2,
+            avatar: 'AR',
+            status: 'active',
+          },
+          {
+            id: 2,
+            name: 'Ben Cruz',
+            role: 'Nurse',
+            shift: 'Day',
+            patients: 2,
+            avatar: 'BC',
+            status: 'active',
+          },
+          {
+            id: 3,
+            name: 'Mia Lim',
+            role: 'Nurse',
+            shift: 'Day',
+            patients: 1,
+            avatar: 'ML',
+            status: 'busy',
+          },
+          {
+            id: 4,
+            name: 'Dr. Santos',
+            role: 'Physician',
+            shift: 'Day',
+            patients: 4,
+            avatar: 'DS',
+            status: 'active',
+          },
+          {
+            id: 5,
+            name: 'Carla Tan',
+            role: 'Care Assistant',
+            shift: 'Night',
+            patients: 0,
+            avatar: 'CT',
+            status: 'off',
+          },
+        ],
+        alerts: [
+          {
+            id: 1,
+            patientId: 4,
+            type: 'critical',
+            message: 'Elevated BP detected — Jose Bautista (A-108)',
+            time: '9:42 AM',
+          },
+          {
+            id: 2,
+            patientId: 2,
+            type: 'warning',
+            message: 'Blood sugar above threshold — Ramon Santos (B-204)',
+            time: '9:58 AM',
+          },
+          {
+            id: 3,
+            patientId: 4,
+            type: 'critical',
+            message: 'O2 saturation drop — Jose Bautista (A-108)',
+            time: '10:01 AM',
+          },
+          {
+            id: 4,
+            patientId: 1,
+            type: 'info',
+            message: 'Dressing change due — Lorna Dela Cruz (A-101)',
+            time: '10:15 AM',
+          },
+        ],
+      };
+
+      // ===================== MOCK API =====================
+      const api = {
+        getPatients: () =>
+          new Promise((r) => setTimeout(() => r([...DB.patients]), 300)),
+        getTasks: () =>
+          new Promise((r) => setTimeout(() => r([...DB.tasks]), 200)),
+        getStaff: () =>
+          new Promise((r) => setTimeout(() => r([...DB.staff]), 200)),
+        getAlerts: () =>
+          new Promise((r) => setTimeout(() => r([...DB.alerts]), 150)),
+        toggleTask: (id) =>
+          new Promise((r) =>
+            setTimeout(() => {
+              const t = DB.tasks.find((t) => t.id === id);
+              if (t) t.done = !t.done;
+              r(t);
+            }, 120)
+          ),
+        askAI: async (patientId, question) => {
+          const patient = DB.patients.find((p) => p.id === patientId);
+          if (!patient) return { answer: 'Patient not found.' };
+          const responses = {
+            'blood pressure': `For ${patient.name}, BP is ${
+              patient.vitals.bp
+            }. This is ${
+              patient.status === 'critical'
+                ? 'concerning'
+                : 'within acceptable range'
+            }. Consider monitoring closely and consult the physician if trends worsen.`,
+            'heart rate': `${patient.name}'s heart rate is ${
+              patient.vitals.hr
+            } bpm. ${
+              patient.vitals.hr > 90
+                ? 'This is elevated — check for pain, anxiety, or infection.'
+                : 'This is within normal limits for their age group.'
+            }`,
+            temperature: `Current temp: ${patient.vitals.temp}°C. ${
+              patient.vitals.temp > 37.5
+                ? 'Slightly elevated — monitor for infection signs.'
+                : 'Normal range. No action needed.'
+            }`,
+            oxygen: `O2 saturation at ${patient.vitals.o2}%. ${
+              patient.vitals.o2 < 95
+                ? 'Below optimal — consider supplemental O2 and notify physician.'
+                : 'Good oxygenation levels.'
+            }`,
+            medication: `Review ${patient.name}'s medication chart. Current condition: ${patient.condition}. Ensure all prescribed meds are administered on schedule.`,
+            condition: `${patient.name} is being treated for ${patient.condition}. Status: ${patient.status}. Assigned nurse: ${patient.nurse}. Last updated ${patient.lastUpdate}.`,
+            default: `Based on ${patient.name}'s current vitals (BP ${patient.vitals.bp}, HR ${patient.vitals.hr}, Temp ${patient.vitals.temp}°C, O2 ${patient.vitals.o2}%), they appear ${patient.status}. Continue standard monitoring protocols.`,
+          };
+          const q = question.toLowerCase();
+          let answer = responses.default;
+          for (const [key, response] of Object.entries(responses)) {
+            if (q.includes(key)) {
+              answer = response;
+              break;
+            }
+          }
+          return new Promise((r) => setTimeout(() => r({ answer }), 800));
+        },
+      };
+
+      // ===================== DESIGN TOKENS =====================
+      const statusColor = {
+        stable: { bg: '#EAF3DE', text: '#3B6D11' },
+        alert: { bg: '#FAEEDA', text: '#854F0B' },
+        critical: { bg: '#FCEBEB', text: '#A32D2D' },
+      };
+      const priorityColor = {
+        critical: { bg: '#FCEBEB', text: '#A32D2D' },
+        high: { bg: '#FAEEDA', text: '#854F0B' },
+        medium: { bg: '#E6F1FB', text: '#185FA5' },
+        low: { bg: '#EAF3DE', text: '#3B6D11' },
+      };
+      const staffStatusColor = {
+        active: { bg: '#EAF3DE', text: '#3B6D11' },
+        busy: { bg: '#FAEEDA', text: '#854F0B' },
+        off: { bg: '#F1EFE8', text: '#5F5E5A' },
+      };
+      const alertTypeColor = {
+        critical: { bg: '#FCEBEB', text: '#A32D2D', icon: '⚠️' },
+        warning: { bg: '#FAEEDA', text: '#854F0B', icon: '⚡' },
+        info: { bg: '#E6F1FB', text: '#185FA5', icon: 'ℹ️' },
+      };
+
+      // ===================== ICONS (SVG) =====================
+      const Icons = {
+        LayoutDashboard: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="9" />
+            <rect x="14" y="3" width="7" height="5" />
+            <rect x="14" y="12" width="7" height="9" />
+            <rect x="3" y="16" width="7" height="5" />
+          </svg>
+        ),
+        Users: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        ),
+        ClipboardList: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="8" y="2" width="8" height="4" rx="1" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            <path d="M12 11h4" />
+            <path d="M12 16h4" />
+            <path d="M8 11h.01" />
+            <path d="M8 16h.01" />
+          </svg>
+        ),
+        Stethoscope: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+            <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+            <circle cx="20" cy="10" r="2" />
+          </svg>
+        ),
+        Heart: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        ),
+        ChevronRight: () => (
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        ),
+        ArrowLeft: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
+          </svg>
+        ),
+        Robot: () => (
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="10" rx="2" />
+            <circle cx="12" cy="5" r="2" />
+            <path d="M12 7v4" />
+            <line x1="8" y1="16" x2="8" y2="16" />
+            <line x1="16" y1="16" x2="16" y2="16" />
+          </svg>
+        ),
+        Activity: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        ),
+        HeartPulse: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />
+          </svg>
+        ),
+        Thermometer: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />
+          </svg>
+        ),
+        Lungs: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6.3 20.3a2.4 2.4 0 0 1-1.5-2.8c.3-1.6 1.5-3.3 3.5-5.1 1.3-1.1 2.1-2.4 2.4-3.7.2-.9.1-1.7-.3-2.3-.4-.5-1-.8-1.8-.8a4 4 0 0 0-3 1.6c-1 1.3-1.5 3-1.5 5 0 2.5.5 4.5 1.5 6" />
+            <path d="M17.7 20.3a2.4 2.4 0 0 0 1.5-2.8c-.3-1.6-1.5-3.3-3.5-5.1-1.3-1.1-2.1-2.4-2.4-3.7-.2-.9-.1-1.7.3-2.3.4-.5 1-.8 1.8-.8a4 4 0 0 1 3 1.6c1 1.3 1.5 3 1.5 5 0 2.5-.5 4.5-1.5 6" />
+          </svg>
+        ),
+        Circle: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        ),
+        CircleCheck: () => (
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        ),
+        AlertTriangle: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+        ),
+        AlertCircle: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        ),
+        InfoCircle: () => (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+        ),
+        Bell: () => (
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+        ),
+        Loader2: () => (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ animation: 'spin 1s linear infinite' }}
+          >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+          </svg>
+        ),
+      };
+
+      // ===================== COMPONENTS =====================
+
+      function Avatar({
+        initials,
+        size = 36,
+        color = '#E1F5EE',
+        textColor = '#0F6E56',
+      }) {
+        return (
+          <div
+            style={{
+              width: size,
+              height: size,
+              borderRadius: '50%',
+              background: color,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 500,
+              fontSize: size * 0.33,
+              color: textColor,
+              flexShrink: 0,
+            }}
+          >
+            {initials}
+          </div>
+        );
+      }
+
+      function Badge({ label, bg, text }) {
+        return (
+          <span
+            style={{
+              background: bg,
+              color: text,
+              fontSize: 11,
+              fontWeight: 500,
+              padding: '2px 8px',
+              borderRadius: 20,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {label}
+          </span>
+        );
+      }
+
+      function MetricCard({
+        icon: Icon,
+        label,
+        value,
+        sub,
+        color = '#185FA5',
+        bg = '#E6F1FB',
+      }) {
+        return (
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              borderRadius: 10,
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  background: bg,
+                  color,
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon />
+              </span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                {label}
+              </span>
+            </div>
+            <div
+              style={{
+                fontSize: 26,
+                fontWeight: 500,
+                color: 'var(--text-primary)',
+                lineHeight: 1,
+              }}
+            >
+              {value}
+            </div>
+            {sub && (
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                {sub}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function DashboardView({
+        patients,
+        tasks,
+        alerts,
+        staff,
+        onSelectPatient,
+      }) {
+        const critical = patients.filter((p) => p.status === 'critical').length;
+        const alertCount = patients.filter((p) => p.status === 'alert').length;
+        const pendingTasks = tasks.filter((t) => !t.done).length;
+        const activeStaff = staff.filter((s) => s.status !== 'off').length;
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: 12,
+              }}
+            >
+              <MetricCard
+                icon={Icons.Users}
+                label="Patients"
+                value={patients.length}
+                sub="in care today"
+              />
+              <MetricCard
+                icon={Icons.AlertTriangle}
+                label="Critical"
+                value={critical}
+                sub="need attention"
+                color="#A32D2D"
+                bg="#FCEBEB"
+              />
+              <MetricCard
+                icon={Icons.Bell}
+                label="Alerts"
+                value={alerts.length}
+                sub="active"
+                color="#854F0B"
+                bg="#FAEEDA"
+              />
+              <MetricCard
+                icon={Icons.ClipboardList}
+                label="Pending tasks"
+                value={pendingTasks}
+                sub="today"
+                color="#0F6E56"
+                bg="#E1F5EE"
+              />
+              <MetricCard
+                icon={Icons.Stethoscope}
+                label="Staff on duty"
+                value={activeStaff}
+                sub="active now"
+                color="#534AB7"
+                bg="#EEEDFE"
+              />
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 16,
+              }}
+            >
+              <div>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'var(--text-secondary)',
+                    marginBottom: 10,
+                  }}
+                >
+                  Active alerts
+                </p>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                >
+                  {alerts.slice(0, 3).map((a) => {
+                    const c = alertTypeColor[a.type];
+                    return (
+                      <div
+                        key={a.id}
+                        style={{
+                          background: c.bg,
+                          borderRadius: 8,
+                          padding: '10px 12px',
+                          display: 'flex',
+                          gap: 10,
+                          alignItems: 'flex-start',
+                        }}
+                      >
+                        <span style={{ fontSize: 16, marginTop: 1 }}>
+                          {c.icon}
+                        </span>
+                        <div>
+                          <p
+                            style={{
+                              fontSize: 13,
+                              color: c.text,
+                              margin: 0,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {a.message}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: 11,
+                              color: c.text,
+                              margin: 0,
+                              opacity: 0.7,
+                            }}
+                          >
+                            {a.time}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'var(--text-secondary)',
+                    marginBottom: 10,
+                  }}
+                >
+                  Critical patients
+                </p>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                >
+                  {patients
+                    .filter(
+                      (p) => p.status === 'critical' || p.status === 'alert'
+                    )
+                    .map((p) => {
+                      const sc = statusColor[p.status];
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => onSelectPatient(p)}
+                          style={{
+                            background: 'var(--bg-primary)',
+                            border: '0.5px solid var(--border-tertiary)',
+                            borderRadius: 10,
+                            padding: '10px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Avatar
+                            initials={p.avatar}
+                            size={34}
+                            color={sc.bg}
+                            textColor={sc.text}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: 13,
+                                fontWeight: 500,
+                                color: 'var(--text-primary)',
+                              }}
+                            >
+                              {p.name}
+                            </p>
+                            <p
+                              style={{
+                                margin: 0,
+                                fontSize: 11,
+                                color: 'var(--text-secondary)',
+                              }}
+                            >
+                              {p.room} · {p.condition}
+                            </p>
+                          </div>
+                          <Badge label={p.status} bg={sc.bg} text={sc.text} />
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function PatientsView({ patients, onSelectPatient }) {
+        const [filter, setFilter] = useState('all');
+        const filtered =
+          filter === 'all'
+            ? patients
+            : patients.filter((p) => p.status === filter);
+        return (
+          <div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              {['all', 'stable', 'alert', 'critical'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setFilter(s)}
+                  style={{
+                    fontSize: 12,
+                    padding: '5px 14px',
+                    borderRadius: 20,
+                    border:
+                      filter === s
+                        ? 'none'
+                        : '0.5px solid var(--border-secondary)',
+                    background:
+                      filter === s ? 'var(--text-primary)' : 'transparent',
+                    color:
+                      filter === s
+                        ? 'var(--bg-primary)'
+                        : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filtered.map((p) => {
+                const sc = statusColor[p.status];
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => onSelectPatient(p)}
+                    style={{
+                      background: 'var(--bg-primary)',
+                      border: '0.5px solid var(--border-tertiary)',
+                      borderRadius: 12,
+                      padding: '14px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Avatar
+                      initials={p.avatar}
+                      size={42}
+                      color={sc.bg}
+                      textColor={sc.text}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginBottom: 3,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 500,
+                            color: 'var(--text-primary)',
+                          }}
+                        >
+                          {p.name}
+                        </span>
+                        <Badge label={p.status} bg={sc.bg} text={sc.text} />
+                      </div>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 12,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {p.room} · Age {p.age} · {p.condition}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 12,
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        Nurse
+                      </p>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 13,
+                          color: 'var(--text-primary)',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {p.nurse}
+                      </p>
+                    </div>
+                    <Icons.ChevronRight />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      function PatientDetailView({ patient, tasks, onBack, onAskAI }) {
+        const [aiQuestion, setAiQuestion] = useState('');
+        const [aiAnswer, setAiAnswer] = useState('');
+        const [aiLoading, setAiLoading] = useState(false);
+        const patientTasks = tasks.filter((t) => t.patientId === patient.id);
+        const sc = statusColor[patient.status];
+
+        const handleAsk = async () => {
+          if (!aiQuestion.trim()) return;
+          setAiLoading(true);
+          setAiAnswer('');
+          const res = await onAskAI(patient.id, aiQuestion);
+          setAiAnswer(res.answer);
+          setAiLoading(false);
+        };
+
+        return (
+          <div>
+            <button
+              onClick={onBack}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: 13,
+                marginBottom: 16,
+                padding: 0,
+              }}
+            >
+              <Icons.ArrowLeft /> Back to patients
+            </button>
+
+            <div
+              style={{
+                background: 'var(--bg-primary)',
+                border: '0.5px solid var(--border-tertiary)',
+                borderRadius: 14,
+                padding: '18px 20px',
+                marginBottom: 16,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  marginBottom: 16,
+                }}
+              >
+                <Avatar
+                  initials={patient.avatar}
+                  size={52}
+                  color={sc.bg}
+                  textColor={sc.text}
+                />
+                <div>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      {patient.name}
+                    </span>
+                    <Badge label={patient.status} bg={sc.bg} text={sc.text} />
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 13,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {patient.room} · Age {patient.age} · {patient.condition}
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 12,
+                      color: 'var(--text-tertiary)',
+                    }}
+                  >
+                    Assigned nurse: {patient.nurse} · Updated{' '}
+                    {patient.lastUpdate}
+                  </p>
+                </div>
+              </div>
+
+              <p
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: 'var(--text-secondary)',
+                  marginBottom: 10,
+                }}
+              >
+                Current vitals
+              </p>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 10,
+                }}
+              >
+                {[
+                  {
+                    label: 'Blood pressure',
+                    value: patient.vitals.bp,
+                    unit: 'mmHg',
+                    icon: Icons.Activity,
+                  },
+                  {
+                    label: 'Heart rate',
+                    value: patient.vitals.hr,
+                    unit: 'bpm',
+                    icon: Icons.HeartPulse,
+                  },
+                  {
+                    label: 'Temperature',
+                    value: patient.vitals.temp,
+                    unit: '°C',
+                    icon: Icons.Thermometer,
+                  },
+                  {
+                    label: 'O2 saturation',
+                    value: patient.vitals.o2,
+                    unit: '%',
+                    icon: Icons.Lungs,
+                  },
+                ].map((v) => {
+                  const VIcon = v.icon;
+                  return (
+                    <div
+                      key={v.label}
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        borderRadius: 8,
+                        padding: '10px 12px',
+                      }}
+                    >
+                      <VIcon />
+                      <p
+                        style={{
+                          margin: '4px 0 0',
+                          fontSize: 20,
+                          fontWeight: 500,
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {v.value}
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--text-secondary)',
+                            marginLeft: 3,
+                          }}
+                        >
+                          {v.unit}
+                        </span>
+                      </p>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 11,
+                          color: 'var(--text-tertiary)',
+                        }}
+                      >
+                        {v.label}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {patientTasks.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'var(--text-secondary)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Care tasks
+                </p>
+                {patientTasks.map((t) => {
+                  const pc = priorityColor[t.priority];
+                  return (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '8px 0',
+                        borderBottom: '0.5px solid var(--border-tertiary)',
+                      }}
+                    >
+                      {t.done ? (
+                        <Icons.CircleCheck color="#3B6D11" />
+                      ) : (
+                        <Icons.Circle color="var(--text-tertiary)" />
+                      )}
+                      <span
+                        style={{
+                          flex: 1,
+                          fontSize: 13,
+                          color: t.done
+                            ? 'var(--text-tertiary)'
+                            : 'var(--text-primary)',
+                          textDecoration: t.done ? 'line-through' : 'none',
+                        }}
+                      >
+                        {t.text}
+                      </span>
+                      <Badge label={t.priority} bg={pc.bg} text={pc.text} />
+                      <span
+                        style={{ fontSize: 11, color: 'var(--text-tertiary)' }}
+                      >
+                        {t.due}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                borderRadius: 12,
+                padding: '14px 16px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <Icons.Robot />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  AI clinical assistant
+                </span>
+                <Badge label="Mock AI" bg="#EEEDFE" text="#534AB7" />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={aiQuestion}
+                  onChange={(e) => setAiQuestion(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
+                  placeholder={`Ask about ${patient.name.split(' ')[0]}...`}
+                />
+                <button
+                  onClick={handleAsk}
+                  disabled={aiLoading || !aiQuestion.trim()}
+                  style={{
+                    fontSize: 13,
+                    padding: '0 16px',
+                    borderRadius: 8,
+                    border: '0.5px solid var(--border-secondary)',
+                    background: '#534AB7',
+                    color: '#fff',
+                    cursor: aiLoading ? 'default' : 'pointer',
+                    opacity: aiLoading ? 0.6 : 1,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {aiLoading ? '...' : 'Ask'}
+                </button>
+              </div>
+              {aiAnswer && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    background: 'var(--bg-primary)',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    border: '0.5px solid #CECBF6',
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 13,
+                      color: 'var(--text-primary)',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {aiAnswer}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      function TasksView({ tasks, patients, onToggle }) {
+        const pending = tasks.filter((t) => !t.done);
+        const done = tasks.filter((t) => t.done);
+
+        const TaskRow = ({ t }) => {
+          const pc = priorityColor[t.priority];
+          const patient = patients.find((p) => p.id === t.patientId);
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 0',
+                borderBottom: '0.5px solid var(--border-tertiary)',
+              }}
+            >
+              <button
+                onClick={() => onToggle(t.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  lineHeight: 0,
+                }}
+              >
+                {t.done ? (
+                  <Icons.CircleCheck color="#3B6D11" />
+                ) : (
+                  <Icons.Circle color="var(--text-tertiary)" />
+                )}
+              </button>
+              <div style={{ flex: 1 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 13,
+                    color: t.done
+                      ? 'var(--text-tertiary)'
+                      : 'var(--text-primary)',
+                    textDecoration: t.done ? 'line-through' : 'none',
+                  }}
+                >
+                  {t.text}
+                </p>
+                {patient && (
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                    }}
+                  >
+                    {patient.name} · {patient.room}
+                  </p>
+                )}
+              </div>
+              <Badge label={t.priority} bg={pc.bg} text={pc.text} />
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'var(--text-secondary)',
+                  minWidth: 56,
+                  textAlign: 'right',
+                }}
+              >
+                {t.due}
+              </span>
+            </div>
+          );
+        };
+
+        return (
+          <div>
+            <p
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: 'var(--text-secondary)',
+                marginBottom: 8,
+              }}
+            >
+              Pending ({pending.length})
+            </p>
+            {pending.map((t) => (
+              <TaskRow key={t.id} t={t} />
+            ))}
+            {done.length > 0 && (
+              <>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: 'var(--text-secondary)',
+                    marginTop: 20,
+                    marginBottom: 8,
+                  }}
+                >
+                  Completed ({done.length})
+                </p>
+                {done.map((t) => (
+                  <TaskRow key={t.id} t={t} />
+                ))}
+              </>
+            )}
+          </div>
+        );
+      }
+
+      function StaffView({ staff }) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {staff.map((s) => {
+              const sc = staffStatusColor[s.status];
+              return (
+                <div
+                  key={s.id}
+                  style={{
+                    background: 'var(--bg-primary)',
+                    border: '0.5px solid var(--border-tertiary)',
+                    borderRadius: 12,
+                    padding: '14px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                  }}
+                >
+                  <Avatar
+                    initials={s.avatar}
+                    size={42}
+                    color={sc.bg}
+                    textColor={sc.text}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 500,
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {s.name}
+                      </span>
+                      <Badge label={s.status} bg={sc.bg} text={sc.text} />
+                    </div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 12,
+                        color: 'var(--text-secondary)',
+                      }}
+                    >
+                      {s.role} · {s.shift} shift
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 22,
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      {s.patients}
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 11,
+                        color: 'var(--text-tertiary)',
+                      }}
+                    >
+                      patients
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+
+      // ===================== MAIN APP =====================
+      function App() {
+        const [view, setView] = useState('dashboard');
+        const [patients, setPatients] = useState([]);
+        const [tasks, setTasks] = useState([]);
+        const [staff, setStaff] = useState([]);
+        const [alerts, setAlerts] = useState([]);
+        const [loading, setLoading] = useState(true);
+        const [selected, setSelected] = useState(null);
+
+        useEffect(() => {
+          (async () => {
+            const [p, t, s, a] = await Promise.all([
+              api.getPatients(),
+              api.getTasks(),
+              api.getStaff(),
+              api.getAlerts(),
+            ]);
+            setPatients(p);
+            setTasks(t);
+            setStaff(s);
+            setAlerts(a);
+            setLoading(false);
+          })();
+        }, []);
+
+        const toggleTask = useCallback(async (id) => {
+          await api.toggleTask(id);
+          setTasks((prev) =>
+            prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+          );
+        }, []);
+
+        const handleSelectPatient = useCallback((p) => {
+          setSelected(p);
+          setView('patient-detail');
+        }, []);
+
+        const navItems = [
+          { id: 'dashboard', icon: Icons.LayoutDashboard, label: 'Dashboard' },
+          { id: 'patients', icon: Icons.Users, label: 'Patients' },
+          {
+            id: 'tasks',
+            icon: Icons.ClipboardList,
+            label: 'Tasks',
+            badge: tasks.filter((t) => !t.done).length,
+          },
+          { id: 'staff', icon: Icons.Stethoscope, label: 'Staff' },
+        ];
+
+        if (loading)
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 400,
+                color: 'var(--text-secondary)',
+                fontSize: 14,
+              }}
+            >
+              <Icons.Loader2 /> Loading CareNest...
+            </div>
+          );
+
+        const criticalCount = alerts.filter(
+          (a) => a.type === 'critical'
+        ).length;
+
+        return (
+          <div
+            style={{
+              fontFamily: 'var(--font-sans)',
+              maxWidth: 720,
+              margin: '0 auto',
+            }}
+          >
+            <h2 className="sr-only">
+              CareNest — Senior Care Management Platform
+            </h2>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+                padding: '16px 0',
+                borderBottom: '0.5px solid var(--border-tertiary)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: '#E1F5EE',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icons.Heart />
+                </div>
+                <div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 17,
+                      fontWeight: 500,
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    CareNest
+                  </p>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                    }}
+                  >
+                    Senior Care Platform
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {criticalCount > 0 && (
+                  <div
+                    style={{ position: 'relative', cursor: 'pointer' }}
+                    onClick={() => setView('dashboard')}
+                  >
+                    <Icons.Bell />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: -4,
+                        right: -4,
+                        background: '#E24B4A',
+                        color: '#fff',
+                        fontSize: 10,
+                        fontWeight: 500,
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {criticalCount}
+                    </span>
+                  </div>
+                )}
+                <Avatar
+                  initials="AN"
+                  size={34}
+                  color="#EEEDFE"
+                  textColor="#534AB7"
+                />
+              </div>
+            </div>
+
+            <nav style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
+              {navItems.map((n) => {
+                const active =
+                  view === n.id ||
+                  (view === 'patient-detail' && n.id === 'patients');
+                const NavIcon = n.icon;
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      setView(n.id);
+                      setSelected(null);
+                    }}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '8px 4px',
+                      background: active
+                        ? 'var(--bg-secondary)'
+                        : 'transparent',
+                      border: 'none',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      position: 'relative',
+                    }}
+                  >
+                    {n.badge > 0 && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 'calc(50% - 14px)',
+                          background: '#E24B4A',
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: 500,
+                          minWidth: 16,
+                          height: 16,
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0 4px',
+                        }}
+                      >
+                        {n.badge}
+                      </span>
+                    )}
+                    <NavIcon />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: active ? '#0F6E56' : 'var(--text-secondary)',
+                        fontWeight: active ? 500 : 400,
+                      }}
+                    >
+                      {n.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div>
+              {view === 'dashboard' && (
+                <DashboardView
+                  patients={patients}
+                  tasks={tasks}
+                  alerts={alerts}
+                  staff={staff}
+                  onSelectPatient={handleSelectPatient}
+                />
+              )}
+              {view === 'patients' && (
+                <PatientsView
+                  patients={patients}
+                  onSelectPatient={handleSelectPatient}
+                />
+              )}
+              {view === 'patient-detail' && selected && (
+                <PatientDetailView
+                  patient={selected}
+                  tasks={tasks}
+                  onBack={() => setView('patients')}
+                  onAskAI={api.askAI}
+                />
+              )}
+              {view === 'tasks' && (
+                <TasksView
+                  tasks={tasks}
+                  patients={patients}
+                  onToggle={toggleTask}
+                />
+              )}
+              {view === 'staff' && <StaffView staff={staff} />}
+            </div>
+          </div>
+        );
+      }
+
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
+    </script>
+  </body>
+</html>
